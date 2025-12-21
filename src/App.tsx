@@ -1,4 +1,3 @@
-import React from 'react';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { Layout } from './components/layout/Layout';
 import { Home } from './pages/Home';
@@ -7,6 +6,7 @@ import { Lobby } from './pages/Lobby';
 import { WriteTruth } from './pages/WriteTruth';
 import { GameLoop } from './pages/GameLoop';
 import { Results } from './pages/Results';
+import { SuggestQuestion } from './pages/SuggestQuestion';
 
 function App() {
   return (
@@ -19,6 +19,7 @@ function App() {
           <Route path="/write-truth" element={<WriteTruth />} />
           <Route path="/game" element={<GameLoop />} />
           <Route path="/results" element={<Results />} />
+          <Route path="/suggest/:gameId" element={<SuggestQuestion />} />
         </Routes>
       </Layout>
     </BrowserRouter>

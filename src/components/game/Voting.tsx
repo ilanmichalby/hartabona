@@ -14,17 +14,45 @@ interface Answer {
 }
 
 export const Voting: React.FC<{ roundId: string; subjectId: string }> = ({ roundId, subjectId }) => {
-    const { playerId, players } = useGameStore();
+    const { playerId, players, mode } = useGameStore();
     const [answers, setAnswers] = useState<Answer[]>([]);
     const [selectedAnswerId, setSelectedAnswerId] = useState<string | null>(null);
     const [isSubmitted, setIsSubmitted] = useState(false);
     const [waitingCount, setWaitingCount] = useState(0);
 
     const subject = players.find(p => p.id === subjectId);
-    const isSubject = playerId === subjectId;
+    const isSubject = mode === 'classic' && playerId === subjectId;
+    const [question, setQuestion] = useState<{ text: string, answer: string, suggested_by?: string } | null>(null);
 
     useEffect(() => {
         fetchAnswers();
+
+        if (mode === 'trivia') {
+            const fetchQuestion = async () => {
+                const { data: roundData } = await supabase
+                    .from('rounds')
+                    .select('question_id')
+                    .eq('id', roundId)
+                    .single();
+
+                if (roundData?.question_id) {
+                    const { data: questionData } = await supabase
+                        .from('trivia_questions')
+                        .select('text, answer, suggested_by:suggested_by_player_id')
+                        .eq('id', roundData.question_id)
+                        .single();
+
+                    if (questionData) {
+                        setQuestion({
+                            text: questionData.text,
+                            answer: questionData.answer,
+                            suggested_by: questionData.suggested_by
+                        });
+                    }
+                }
+            };
+            fetchQuestion();
+        }
 
         // Subscribe to votes to check progress
         const subscription = supabase
@@ -46,45 +74,36 @@ export const Voting: React.FC<{ roundId: string; subjectId: string }> = ({ round
         };
     }, [roundId]);
 
+    useEffect(() => {
+        if (mode === 'trivia' && question) {
+            checkProgress();
+        }
+    }, [question]);
+
     const fetchAnswers = async () => {
+        console.log('[Voting] fetchAnswers called for roundId:', roundId);
+
         // 1. Get fake answers
         const { data: fakeAnswers } = await supabase
             .from('answers')
             .select('*')
             .eq('round_id', roundId);
 
-        // 2. Get true statement
-        const { data: subjectPlayer } = await supabase
-            .from('players')
-            .select('true_statement')
-            .eq('id', subjectId)
-            .single();
+        console.log('[Voting] Fetched answers from DB:', fakeAnswers);
 
-        if (fakeAnswers && subjectPlayer?.true_statement) {
-            // Create a "true" answer object (it's not in the answers table yet, or maybe we should insert it? 
-            // Plan said "is_truth" in answers table. Let's insert it if not exists or just handle it in memory.
-            // Actually, for simplicity and scoring, it's better if the true answer is also in the 'answers' table.
-            // But wait, the subject wrote it in 'players' table.
-            // Let's create a temporary Answer object for the truth.
-            // Ideally, the host should have inserted the true answer into 'answers' table at start of round or voting phase.
-            // Let's do it in memory for now, but for voting we need an ID.
-            // Better approach: Host inserts the true answer into 'answers' table when switching to voting phase.
-            // Let's assume the host did that in GameLoop transition. 
-            // If not, we can just fetch all answers including the truth if it was inserted.
 
-            // Let's check if truth is in answers.
-            const truthInAnswers = fakeAnswers.find(a => a.is_truth);
-            let allAnswers = [...fakeAnswers];
 
-            if (!truthInAnswers) {
-                // This implies the host logic in GameLoop needs to insert the truth.
-                // I will implement that in GameLoop. For now, let's assume it's there.
-            }
+        if (fakeAnswers) {
+            // Filter empty answers just in case
+            const validAnswers = fakeAnswers.filter(a => a.text);
 
             // Shuffle
-            setAnswers(allAnswers.sort(() => Math.random() - 0.5));
+            setAnswers(validAnswers.sort(() => Math.random() - 0.5));
         }
     };
+
+
+
 
     const checkProgress = async () => {
         const { count } = await supabase
@@ -92,8 +111,15 @@ export const Voting: React.FC<{ roundId: string; subjectId: string }> = ({ round
             .select('*', { count: 'exact', head: true })
             .eq('round_id', roundId);
 
-        // Total expected votes = players - 1 (subject doesn't vote)
-        const expectedVotes = players.length - 1;
+        // Total expected votes:
+        // Classic: players - 1 (subject doesn't vote)
+        // Trivia: players (everyone votes) UNLESS the question author is playing
+        let expectedVotes = players.length;
+
+        if (mode === 'classic') {
+            expectedVotes = players.length - 1;
+        }
+
         setWaitingCount(expectedVotes - (count || 0));
 
         if (count === expectedVotes) {
@@ -130,12 +156,35 @@ export const Voting: React.FC<{ roundId: string; subjectId: string }> = ({ round
 
     if (isSubject) {
         return (
-            <div className="text-center space-y-8">
-                <AvatarDisplay seed={subject?.avatar_seed || ''} size="xl" className="mx-auto" />
-                <Card className="p-8">
-                    <h2 className="text-2xl font-bold mb-4">האמת שלך עומדת למבחן!</h2>
+            <div className="space-y-6">
+                <div className="text-center space-y-2">
+                    <AvatarDisplay seed={subject?.avatar_seed || ''} size="xl" className="mx-auto" />
+                    <h2 className="text-2xl font-bold">האמת שלך עומדת למבחן!</h2>
                     <p className="text-white/60">
-                        החברים מנסים לנחש מה האמת ומה חירטוט.<br />
+                        החברים מנסים לנחש מה האמת ומה חירטוט
+                    </p>
+                </div>
+
+                <Card className="p-6 bg-primary/10 border-primary/20">
+                    <h3 className="text-lg font-bold mb-4">💭 מה כתבו עליך:</h3>
+                    <div className="space-y-3">
+                        {answers.filter(a => !a.is_truth).map((answer, index) => (
+                            <motion.div
+                                key={answer.id}
+                                initial={{ opacity: 0, x: -20 }}
+                                animate={{ opacity: 1, x: 0 }}
+                                transition={{ delay: index * 0.1 }}
+                                className="p-4 bg-white/5 rounded-lg text-right"
+                            >
+                                {answer.text}
+                            </motion.div>
+                        ))}
+                    </div>
+                </Card>
+
+                <Card className="text-center py-6">
+                    <div className="text-4xl mb-2">🗳️</div>
+                    <p className="text-white/60">
                         ממתין ל-{waitingCount} מצביעים...
                     </p>
                 </Card>
@@ -146,27 +195,50 @@ export const Voting: React.FC<{ roundId: string; subjectId: string }> = ({ round
     return (
         <div className="space-y-6">
             <div className="text-center space-y-2">
-                <AvatarDisplay seed={subject?.avatar_seed || ''} size="lg" className="mx-auto" />
-                <h2 className="text-2xl font-bold">מה האמת של {subject?.name}?</h2>
+                {mode === 'classic' ? (
+                    <>
+                        <AvatarDisplay seed={subject?.avatar_seed || ''} size="lg" className="mx-auto" />
+                        <h2 className="text-2xl font-bold">מה האמת של {subject?.name}?</h2>
+                    </>
+                ) : (
+                    <>
+                        <h2 className="text-2xl font-bold text-accent">השאלה:</h2>
+                        <Card className="p-4 bg-accent/10 border-accent/20">
+                            <p className="text-xl font-bold">{question?.text || 'טוען...'}</p>
+                        </Card>
+                    </>
+                )}
             </div>
 
             <div className="grid gap-4">
                 {!isSubmitted ? (
                     <>
-                        {answers.map((answer) => (
-                            <motion.button
-                                key={answer.id}
-                                whileHover={{ scale: 1.02 }}
-                                whileTap={{ scale: 0.98 }}
-                                onClick={() => setSelectedAnswerId(answer.id)}
-                                className={`p-6 rounded-xl text-right text-lg transition-all ${selectedAnswerId === answer.id
-                                    ? 'bg-primary text-white shadow-lg shadow-primary/25 ring-2 ring-white'
-                                    : 'bg-white/10 text-white/90 hover:bg-white/20'
-                                    }`}
-                            >
-                                {answer.text}
-                            </motion.button>
-                        ))}
+                        {answers.map((answer) => {
+                            const isOwnAnswer = answer.player_id === playerId && !answer.is_truth;
+
+                            return (
+                                <motion.button
+                                    key={answer.id}
+                                    whileHover={!isOwnAnswer ? { scale: 1.02 } : {}}
+                                    whileTap={!isOwnAnswer ? { scale: 0.98 } : {}}
+                                    onClick={() => !isOwnAnswer && setSelectedAnswerId(answer.id)}
+                                    disabled={isOwnAnswer}
+                                    className={`p-6 rounded-xl text-right text-lg transition-all relative ${isOwnAnswer
+                                        ? 'bg-white/5 text-white/40 cursor-not-allowed border-2 border-white/10'
+                                        : selectedAnswerId === answer.id
+                                            ? 'bg-primary text-white shadow-lg shadow-primary/25 ring-2 ring-white'
+                                            : 'bg-white/10 text-white/90 hover:bg-white/20'
+                                        }`}
+                                >
+                                    {answer.text}
+                                    {isOwnAnswer && (
+                                        <span className="absolute top-2 left-2 text-xs bg-white/10 px-2 py-1 rounded">
+                                            החירטוט שלך
+                                        </span>
+                                    )}
+                                </motion.button>
+                            );
+                        })}
                         <Button
                             onClick={submitVote}
                             disabled={!selectedAnswerId}
@@ -175,6 +247,7 @@ export const Voting: React.FC<{ roundId: string; subjectId: string }> = ({ round
                             הצבע!
                         </Button>
                     </>
+
                 ) : (
                     <Card className="text-center py-8">
                         <div className="text-4xl mb-4">🗳️</div>
@@ -185,6 +258,6 @@ export const Voting: React.FC<{ roundId: string; subjectId: string }> = ({ round
                     </Card>
                 )}
             </div>
-        </div>
+        </div >
     );
 };

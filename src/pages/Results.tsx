@@ -3,14 +3,14 @@ import { useNavigate } from 'react-router-dom';
 import { Button } from '../components/ui/Button';
 import { Card } from '../components/ui/Card';
 import { AvatarDisplay } from '../components/ui/AvatarDisplay';
-import { supabase } from '../lib/supabase';
 import { useGameStore } from '../lib/store';
+import { supabase } from '../lib/supabase';
 import { motion } from 'framer-motion';
-import { Trophy, Crown, Brain, Zap } from 'lucide-react';
+import { Crown, Brain, Zap } from 'lucide-react';
 
 export const Results: React.FC = () => {
     const navigate = useNavigate();
-    const { gameId, players, reset } = useGameStore();
+    const { gameId, reset, setPlayers } = useGameStore();
     const [sortedPlayers, setSortedPlayers] = useState<any[]>([]);
 
     useEffect(() => {
@@ -19,10 +19,23 @@ export const Results: React.FC = () => {
             return;
         }
 
-        // Sort players by score
-        const sorted = [...players].sort((a, b) => b.score - a.score);
-        setSortedPlayers(sorted);
-    }, [players, gameId, navigate]);
+        // Fetch fresh player data from database to get updated scores
+        fetchPlayersWithScores();
+    }, [gameId, navigate]);
+
+    const fetchPlayersWithScores = async () => {
+        const { data } = await supabase
+            .from('players')
+            .select('*')
+            .eq('game_id', gameId);
+
+        if (data) {
+            setPlayers(data);
+            // Sort players by score
+            const sorted = [...data].sort((a, b) => b.score - a.score);
+            setSortedPlayers(sorted);
+        }
+    };
 
     const handleNewGame = () => {
         reset();
@@ -35,8 +48,8 @@ export const Results: React.FC = () => {
             animate={{ y: 0, opacity: 1 }}
             transition={{ delay }}
             className={`relative flex flex-col items-center p-4 rounded-xl border-2 ${rank === 1
-                    ? 'bg-yellow-500/20 border-yellow-500 scale-110 z-10'
-                    : 'bg-white/5 border-white/10'
+                ? 'bg-yellow-500/20 border-yellow-500 scale-110 z-10'
+                : 'bg-white/5 border-white/10'
                 }`}
         >
             <div className="absolute -top-6">

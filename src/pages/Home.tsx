@@ -12,7 +12,8 @@ export const Home: React.FC = () => {
     const [searchParams] = useSearchParams();
     const [joinCode, setJoinCode] = useState('');
     const [isLoading, setIsLoading] = useState(false);
-    const { setGameId, setGameCode } = useGameStore();
+    const [selectedMode, setSelectedMode] = useState<'classic' | 'trivia'>('classic');
+    const { setGameId, setGameCode, setMode } = useGameStore();
 
     // Auto-join if code is in URL
     useEffect(() => {
@@ -34,7 +35,7 @@ export const Home: React.FC = () => {
 
             const { data, error } = await supabase
                 .from('games')
-                .insert([{ code, status: 'lobby' }])
+                .insert([{ code, status: 'lobby', mode: selectedMode }])
                 .select()
                 .single();
 
@@ -43,6 +44,7 @@ export const Home: React.FC = () => {
             if (data) {
                 setGameId(data.id);
                 setGameCode(data.code);
+                setMode(data.mode);
                 navigate('/setup');
             }
         } catch (error: any) {
@@ -77,6 +79,7 @@ export const Home: React.FC = () => {
 
             setGameId(data.id);
             setGameCode(data.code);
+            setMode(data.mode); // Sync mode from DB
             navigate('/setup');
         } catch (error) {
             console.error('Error joining game:', error);
@@ -104,12 +107,37 @@ export const Home: React.FC = () => {
 
             <div className="w-full space-y-6">
                 <Card className="space-y-6">
+                    <div className="grid grid-cols-2 gap-4">
+                        <button
+                            onClick={() => setSelectedMode('classic')}
+                            className={`p-4 rounded-xl border-2 transition-all ${selectedMode === 'classic'
+                                ? 'border-primary bg-primary/20 text-white'
+                                : 'border-white/10 bg-white/5 text-white/60 hover:bg-white/10'
+                                }`}
+                        >
+                            <div className="text-2xl mb-2">🤥</div>
+                            <div className="font-bold">קלאסי</div>
+                            <div className="text-xs opacity-70">שקרים על חברים</div>
+                        </button>
+                        <button
+                            onClick={() => setSelectedMode('trivia')}
+                            className={`p-4 rounded-xl border-2 transition-all ${selectedMode === 'trivia'
+                                ? 'border-accent bg-accent/20 text-white'
+                                : 'border-white/10 bg-white/5 text-white/60 hover:bg-white/10'
+                                }`}
+                        >
+                            <div className="text-2xl mb-2">🧠</div>
+                            <div className="font-bold">טריוויה</div>
+                            <div className="text-xs opacity-70">שקרים על עובדות</div>
+                        </button>
+                    </div>
+
                     <Button
                         onClick={createGame}
                         disabled={isLoading}
-                        className="w-full text-lg h-16 bg-gradient-to-r from-primary to-accent"
+                        className="w-full text-lg h-14 bg-gradient-to-r from-primary to-accent"
                     >
-                        {isLoading ? 'יוצר משחק...' : 'צור משחק חדש'}
+                        {isLoading ? 'יוצר משחק...' : `צור משחק ${selectedMode === 'classic' ? 'קלאסי' : 'טריוויה'}`}
                     </Button>
 
                     <div className="relative">
