@@ -6,7 +6,7 @@ import { AvatarDisplay } from '../components/ui/AvatarDisplay';
 import { supabase } from '../lib/supabase';
 import { useGameStore } from '../lib/store';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Copy, Users, Share2, Plus } from 'lucide-react';
+import { Copy, Users, Share2 } from 'lucide-react';
 import { QuestionManager } from '../components/game/QuestionManager';
 
 export const Lobby: React.FC = () => {
@@ -200,29 +200,20 @@ export const Lobby: React.FC = () => {
                     <h3 className="font-bold text-accent mb-2">🧠 בניית המשחק</h3>
                     <p className="text-sm text-white/60 mb-3">
                         {isHost
-                            ? 'שלח קישור לחברים כדי שיעזרו להמציא שאלות!'
-                            : 'יש לך שאלה טובה? שלח אותה למנהל!'}
+                            ? 'כל שחקן מוסיף שאלות משלו למטה. שלח קישור גם לחברים שמחוץ למשחק!'
+                            : 'הוסף שאלות משלך למטה — תראה רק את אלה שאתה כתבת, כך שתוכל גם לשחק.'}
                     </p>
-                    <div className="flex gap-2">
+                    {isHost && (
                         <Button
-                            onClick={() => navigate(`/suggest/${gameId}?suggestedBy=${playerId}`)}
-                            variant="secondary"
-                            className="flex-1 flex items-center justify-center gap-2 border-accent/20 hover:bg-accent/10"
+                            onClick={shareSuggestionLink}
+                            variant="outline"
+                            className="w-full flex items-center justify-center gap-2 border-accent/20"
+                            title="העתק קישור להצעת שאלות"
                         >
-                            <Plus className="w-4 h-4" />
-                            הצע שאלה
+                            <Share2 className="w-4 h-4" />
+                            שתף קישור להצעת שאלות
                         </Button>
-                        {isHost && (
-                            <Button
-                                onClick={shareSuggestionLink}
-                                variant="outline"
-                                className="px-3 border-accent/20"
-                                title="העתק קישור להצעת שאלות"
-                            >
-                                <Share2 className="w-4 h-4" />
-                            </Button>
-                        )}
-                    </div>
+                    )}
                 </Card>
             )}
 
@@ -255,7 +246,7 @@ export const Lobby: React.FC = () => {
                 </div>
             </div>
 
-            {mode === 'trivia' && isHost && (
+            {mode === 'trivia' && (
                 <div className="mb-4">
                     <QuestionManager />
                 </div>

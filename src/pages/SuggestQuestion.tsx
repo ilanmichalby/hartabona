@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import { Button } from '../components/ui/Button';
 import { Input } from '../components/ui/Input';
@@ -7,20 +7,56 @@ import { supabase } from '../lib/supabase';
 import { useGameStore } from '../lib/store';
 import { Send, CheckCircle } from 'lucide-react';
 
+/**
+ * מחזיר מזהה תורם עקבי לשימוש הנוכחי:
+ * 1. אם הגיעו עם suggestedBy בURL – משתמשים בו.
+ * 2. אחרת – מחפשים/יוצרים UUID ב-localStorage לפי gameId.
+ * כשהתורם מצטרף למשחק, GameSetup יקרא למפתח הזה ויקשר את השאלות.
+ */
+function getOrCreateContributorId(gameId: string, urlSuggestedBy: string | null): string {
+    const key = `hartabona_contributor_${gameId}`;
+    if (urlSuggestedBy) {
+        localStorage.setItem(key, urlSuggestedBy);
+        return urlSuggestedBy;
+    }
+    const stored = localStorage.getItem(key);
+    if (stored) return stored;
+    const newId = crypto.randomUUID();
+    localStorage.setItem(key, newId);
+    return newId;
+}
+
 export const SuggestQuestion: React.FC = () => {
     const { gameId } = useParams();
     const navigate = useNavigate();
     const location = useLocation();
 
-    // Get suggestedBy from query params
+    // Get suggestedBy from query params (optional – existing players may pass their playerId)
     const queryParams = new URLSearchParams(location.search);
-    const suggestedBy = queryParams.get('suggestedBy');
+    const urlSuggestedBy = queryParams.get('suggestedBy');
+
+    // contributorId is stable for this browser/game combination
+    const contributorId = useRef<string>(
+        gameId ? getOrCreateContributorId(gameId, urlSuggestedBy) : (urlSuggestedBy ?? '')
+    ).current;
 
     const [question, setQuestion] = useState('');
     const [answer, setAnswer] = useState('');
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [isSuccess, setIsSuccess] = useState(false);
     const [gameCode, setGameCode] = useState<string | null>(null);
+    const [myQuestions, setMyQuestions] = useState<{ id: string; text: string; answer: string; status: string }[]>([]);
+
+    const fetchMyQuestions = async () => {
+        if (!gameId || !contributorId) return;
+        const { data } = await supabase
+            .from('trivia_questions')
+            .select('id, text, answer, status')
+            .eq('game_id', gameId)
+            .eq('suggested_by_player_id', contributorId)
+            .order('created_at', { ascending: false });
+        if (data) setMyQuestions(data);
+    };
 
     useEffect(() => {
         const fetchGameCode = async () => {
@@ -33,7 +69,9 @@ export const SuggestQuestion: React.FC = () => {
             if (data) setGameCode(data.code);
         };
         fetchGameCode();
-    }, [gameId]);
+        fetchMyQuestions();
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [gameId, contributorId]);
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -48,13 +86,14 @@ export const SuggestQuestion: React.FC = () => {
                     text: question,
                     answer: answer,
                     status: 'pending', // Pending approval for suggestions
-                    suggested_by_player_id: suggestedBy
+                    suggested_by_player_id: contributorId
                 }]);
 
             if (error) throw error;
             setIsSuccess(true);
             setQuestion('');
             setAnswer('');
+            fetchMyQuestions();
 
             // Reset success message after 3 seconds
             setTimeout(() => {
@@ -137,6 +176,24 @@ export const SuggestQuestion: React.FC = () => {
                         )}
                     </Button>
                 </form>
+
+                {contributorId && myQuestions.length > 0 && (
+                    <div className="border-t border-white/10 pt-4 space-y-3">
+                        <div className="flex items-baseline justify-between">
+                            <h3 className="font-bold text-white/80">השאלות שלך ({myQuestions.length})</h3>
+                            <span className="text-xs text-white/40">רק אתה רואה אותן</span>
+                        </div>
+                        {myQuestions.map((q) => (
+                            <div key={q.id} className="bg-white/5 rounded-lg p-3 text-right">
+                                <div className="font-bold">{q.text}</div>
+                                <div className="text-sm text-green-400">{q.answer}</div>
+                                <div className={`text-xs mt-1 ${q.status === 'pending' ? 'text-yellow-400' : 'text-white/40'}`}>
+                                    {q.status === 'pending' ? 'ממתין לאישור' : q.status === 'approved' ? 'אושר ✓' : 'שומש'}
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+                )}
 
                 <div className="border-t border-white/10 pt-4 flex flex-col gap-3">
                     <Button

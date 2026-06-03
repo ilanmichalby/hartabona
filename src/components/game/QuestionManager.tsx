@@ -16,7 +16,8 @@ interface Question {
 }
 
 export const QuestionManager: React.FC = () => {
-    const { gameId, playerId } = useGameStore();
+    const { gameId, playerId, players } = useGameStore();
+    const isHost = players.find(p => p.id === playerId)?.is_host ?? false;
     const [questions, setQuestions] = useState<Question[]>([]);
     const [newQuestion, setNewQuestion] = useState({ text: '', answer: '' });
     const [isAdding, setIsAdding] = useState(false);
@@ -39,15 +40,23 @@ export const QuestionManager: React.FC = () => {
         return () => {
             supabase.removeChannel(subscription);
         };
-    }, [gameId]);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [gameId, playerId, isHost]);
 
     const fetchQuestions = async () => {
-        const { data } = await supabase
+        let query = supabase
             .from('trivia_questions')
             .select('*')
             .eq('game_id', gameId)
             .order('created_at', { ascending: false });
 
+        // Players only ever see the questions they wrote themselves, so they
+        // can still play fairly with everyone else's questions. The host moderates all.
+        if (!isHost) {
+            query = query.eq('suggested_by_player_id', playerId);
+        }
+
+        const { data } = await query;
         if (data) setQuestions(data);
     };
 
@@ -61,7 +70,8 @@ export const QuestionManager: React.FC = () => {
                 game_id: gameId,
                 text: newQuestion.text,
                 answer: newQuestion.answer,
-                status: 'approved', // Host added questions are approved by default
+                // Host questions are approved immediately; player questions await host approval.
+                status: isHost ? 'approved' : 'pending',
                 suggested_by_player_id: playerId
             }]);
 
@@ -86,11 +96,27 @@ export const QuestionManager: React.FC = () => {
     };
 
     const approvedQuestions = questions.filter(q => q.status === 'approved');
-    // const pendingQuestions = questions.filter(q => q.status === 'pending');
+
+    const statusLabel = (status: Question['status']) => {
+        switch (status) {
+            case 'pending': return 'ממתין לאישור';
+            case 'approved': return 'אושר ✓';
+            case 'used': return 'שומש';
+        }
+    };
 
     return (
         <Card className="p-4 bg-white/5 border-white/10 max-h-[60vh] overflow-y-auto">
-            <h3 className="text-xl font-bold mb-4 sticky top-0 bg-[#1a1a2e] z-10 py-2">ניהול שאלות ({approvedQuestions.length})</h3>
+            <h3 className="text-xl font-bold mb-1 sticky top-0 bg-[#1a1a2e] z-10 py-2">
+                {isHost
+                    ? `ניהול שאלות (${approvedQuestions.length} מאושרות)`
+                    : `השאלות שלי (${questions.length})`}
+            </h3>
+            {!isHost && (
+                <p className="text-sm text-white/50 mb-4">
+                    אתה רואה רק את השאלות שאתה כתבת — כך תוכל גם לשחק. השאר מוסתרות ממך.
+                </p>
+            )}
 
             <div className="space-y-4 mb-8">
                 <div className="space-y-2">
@@ -111,7 +137,7 @@ export const QuestionManager: React.FC = () => {
                         variant="secondary"
                     >
                         <Plus className="w-4 h-4 ml-2" />
-                        הוסף שאלה
+                        {isHost ? 'הוסף שאלה' : 'הוסף שאלה משלי'}
                     </Button>
                 </div>
             </div>
@@ -132,9 +158,12 @@ export const QuestionManager: React.FC = () => {
                             <div className="text-right">
                                 <div className="font-bold">{q.text}</div>
                                 <div className="text-sm text-green-400">{q.answer}</div>
+                                <div className={`text-xs mt-1 ${q.status === 'pending' ? 'text-yellow-400' : 'text-white/40'}`}>
+                                    {statusLabel(q.status)}
+                                </div>
                             </div>
                             <div className="flex gap-2">
-                                {q.status === 'pending' && (
+                                {isHost && q.status === 'pending' && (
                                     <button
                                         onClick={() => approveQuestion(q.id)}
                                         className="text-green-500 hover:text-green-400 transition-colors p-1"
@@ -157,7 +186,7 @@ export const QuestionManager: React.FC = () => {
 
                 {questions.length === 0 && (
                     <div className="text-center text-white/40 py-4">
-                        עדיין אין שאלות. הוסף אחת!
+                        {isHost ? 'עדיין אין שאלות. הוסף אחת!' : 'עדיין לא הצעת שאלות. הוסף אחת!'}
                     </div>
                 )}
             </div>

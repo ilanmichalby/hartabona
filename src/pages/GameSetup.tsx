@@ -56,6 +56,20 @@ export const GameSetup: React.FC = () => {
 
             if (data) {
                 setPlayerId(data.id);
+
+                // אם המשתמש הזה תרם שאלות לפני שהצטרף (דרך עמוד SuggestQuestion),
+                // נקשר את השאלות שלו ל-playerId החדש שנוצר.
+                const contributorKey = `hartabona_contributor_${gameId}`;
+                const contributorId = localStorage.getItem(contributorKey);
+                if (contributorId && contributorId !== data.id) {
+                    await supabase
+                        .from('trivia_questions')
+                        .update({ suggested_by_player_id: data.id })
+                        .eq('game_id', gameId)
+                        .eq('suggested_by_player_id', contributorId);
+                    localStorage.removeItem(contributorKey);
+                }
+
                 navigate('/lobby');
             }
         } catch (error) {
