@@ -1,0 +1,128 @@
+@import "tailwindcss";
+
+* {
+  font-family: 'Heebo', system-ui, -apple-system, sans-serif;
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  direction: rtl;
+  overflow-x: hidden;
+  background: #0f0a1e;
+}
+
+#root {
+  min-height: 100svh;
+}
+
+/* Animated gradient background */
+@keyframes gradient-shift {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+.animated-bg {
+  background: linear-gradient(-45deg, #1a0533, #2d1b69, #1a1a4e, #0d2137, #1a0533);
+  background-size: 400% 400%;
+  animation: gradient-shift 12s ease infinite;
+  min-height: 100svh;
+}
+
+/* Floating blobs */
+@keyframes blob1 {
+  0%, 100% { transform: translate(0, 0) scale(1); }
+  33% { transform: translate(30px, -50px) scale(1.1); }
+  66% { transform: translate(-20px, 20px) scale(0.9); }
+}
+@keyframes blob2 {
+  0%, 100% { transform: translate(0, 0) scale(1); }
+  33% { transform: translate(-40px, 30px) scale(0.95); }
+  66% { transform: translate(20px, -30px) scale(1.05); }
+}
+.blob1 { animation: blob1 8s ease-in-out infinite; }
+.blob2 { animation: blob2 10s ease-in-out infinite; }
+
+/* Card hover effect */
+.card-hover {
+  transition: transform 0.18s ease, box-shadow 0.18s ease;
+  cursor: pointer;
+}
+.card-hover:hover {
+  transform: translateY(-3px) scale(1.015);
+  box-shadow: 0 12px 40px rgba(139, 92, 246, 0.35);
+}
+.card-hover:active {
+  transform: scale(0.97);
+}
+
+/* Glow pulse */
+@keyframes glow-pulse {
+  0%, 100% { box-shadow: 0 0 20px rgba(139, 92, 246, 0.4), 0 0 40px rgba(236, 72, 153, 0.2); }
+  50% { box-shadow: 0 0 40px rgba(139, 92, 246, 0.7), 0 0 80px rgba(236, 72, 153, 0.4); }
+}
+.glow-pulse { animation: glow-pulse 2.5s ease-in-out infinite; }
+
+/* Float animation */
+@keyframes float {
+  0%, 100% { transform: translateY(0px); }
+  50% { transform: translateY(-8px); }
+}
+.float-anim { animation: float 3s ease-in-out infinite; }
+
+/* Bounce in */
+@keyframes bounceIn {
+  0% { transform: scale(0.3); opacity: 0; }
+  50% { transform: scale(1.05); }
+  70% { transform: scale(0.95); }
+  100% { transform: scale(1); opacity: 1; }
+}
+.bounce-in { animation: bounceIn 0.5s ease-out forwards; }
+
+/* Slide up */
+@keyframes slideUp {
+  from { transform: translateY(30px); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+.slide-up { animation: slideUp 0.4s ease-out forwards; }
+
+/* Score pop */
+@keyframes scorePop {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.4); color: #fbbf24; }
+  100% { transform: scale(1); }
+}
+.score-pop { animation: scorePop 0.6s ease-out; }
+
+/* Confetti shimmer */
+@keyframes shimmer {
+  0% { background-position: -200% center; }
+  100% { background-position: 200% center; }
+}
+.shimmer-text {
+  background: linear-gradient(90deg, #f59e0b, #ec4899, #8b5cf6, #06b6d4, #f59e0b);
+  background-size: 200% auto;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  animation: shimmer 3s linear infinite;
+}
+
+/* Scrollbar */
+::-webkit-scrollbar { width: 5px; }
+::-webkit-scrollbar-track { background: rgba(255,255,255,0.05); }
+::-webkit-scrollbar-thumb { background: rgba(139, 92, 246, 0.5); border-radius: 3px; }
+
+/* Input/textarea RTL */
+input, textarea, select {
+  direction: rtl;
+  text-align: right;
+}
+
+/* Selected card */
+.selected-card {
+  border-color: #8b5cf6 !important;
+  background: rgba(139, 92, 246, 0.2) !important;
+  box-shadow: 0 0 0 2px rgba(139, 92, 246, 0.5), 0 8px 30px rgba(139, 92, 246, 0.3);
+}
