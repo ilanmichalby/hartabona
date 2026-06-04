@@ -30,11 +30,17 @@ export default function ContributorPage() {
       if (data.status !== 'lobby') { setError('המשחק כבר התחיל, לא ניתן להוסיף שאלות'); setLoading(false); return }
       setGame(data)
 
-      const { data: qs } = await supabase
-        .from('questions').select('*')
-        .eq('game_id', data.id)
-        .order('order_index', { ascending: true })
-      setQuestions(qs || [])
+      // טוען רק את השאלות של התורם הנוכחי — כך שלא יראה שאלות של אחרים
+      const storedName = localStorage.getItem('hartabona_contributor_name')
+      if (storedName) {
+        const { data: qs } = await supabase
+          .from('questions').select('*')
+          .eq('game_id', data.id)
+          .eq('author_name', storedName)
+          .order('order_index', { ascending: true })
+        setQuestions(qs || [])
+      }
+      // אם אין שם — לא טוענים שאלות כלל (הטופס לבחירת שם יוצג במקום)
     } catch { setError('שגיאה בטעינה') }
     setLoading(false)
   }
@@ -45,23 +51,37 @@ export default function ContributorPage() {
     const channel = supabase.channel(`contributor-qs-${game.id}`)
       .on('postgres_changes', { event: '*', schema: 'public', table: 'questions', filter: `game_id=eq.${game.id}` },
         payload => {
-          if (payload.eventType === 'INSERT')
+          const myName = localStorage.getItem('hartabona_contributor_name')
+          if (payload.eventType === 'INSERT') {
+            // מציג רק שאלות שהתורם הזה כתב
+            if (myName && payload.new.author_name !== myName) return
             setQuestions(prev => prev.find(q => q.id === payload.new.id) ? prev : [...prev, payload.new])
-          else if (payload.eventType === 'UPDATE')
+          } else if (payload.eventType === 'UPDATE') {
+            // מעדכן רק שאלות שמופיעות אצלנו כבר
             setQuestions(prev => prev.map(q => q.id === payload.new.id ? payload.new : q))
-          else if (payload.eventType === 'DELETE')
+          } else if (payload.eventType === 'DELETE') {
             setQuestions(prev => prev.filter(q => q.id !== payload.old.id))
+          }
         })
       .subscribe()
     return () => supabase.removeChannel(channel)
   }, [game?.id])
 
-  function saveName() {
+  async function saveName() {
     const trimmed = contributorName.trim()
     if (!trimmed) return
     localStorage.setItem('hartabona_contributor_name', trimmed)
     setContributorName(trimmed)
     setNameSet(true)
+    // טוענים את השאלות של התורם הזה (אחרי שהשם נקבע)
+    if (game) {
+      const { data: qs } = await supabase
+        .from('questions').select('*')
+        .eq('game_id', game.id)
+        .eq('author_name', trimmed)
+        .order('order_index', { ascending: true })
+      setQuestions(qs || [])
+    }
   }
 
   if (loading) return (
