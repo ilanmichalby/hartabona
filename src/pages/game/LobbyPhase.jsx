@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { supabase } from '../../lib/supabase'
 import AvatarDisplay from '../../components/AvatarDisplay'
 import QuestionSetupPanel from '../../components/QuestionSetupPanel'
 
@@ -6,6 +7,14 @@ export default function LobbyPhase({ game, players, myPlayer, isHost, onStartGam
   const [copied, setCopied] = useState(null) // 'player' | 'contributor' | null
   const [starting, setStarting] = useState(false)
   const [tab, setTab] = useState('players') // 'players' | 'questions'
+  const [allowContributorJoin, setAllowContributorJoin] = useState(
+    game.allow_contributor_join !== false // ברירת מחדל: true
+  )
+
+  async function toggleContributorJoin(val) {
+    setAllowContributorJoin(val)
+    await supabase.from('games').update({ allow_contributor_join: val }).eq('id', game.id)
+  }
 
   const isQuestionsMode = game.mode === 'questions'
   const selectedQuestionsCount = (allQuestions || []).filter(q => q.is_selected).length
@@ -52,10 +61,23 @@ export default function LobbyPhase({ game, players, myPlayer, isHost, onStartGam
             {copied === 'player' ? '✅ הועתק!' : '🔗 העתק לינק שחקנים'}
           </button>
           {isQuestionsMode && contributorLink && (
-            <button onClick={() => copyToClipboard(contributorLink, 'contributor')}
-              className="w-full mt-2 bg-cyan-500/15 hover:bg-cyan-500/25 text-cyan-300 text-sm font-medium py-2 rounded-xl border border-cyan-500/20 transition-all flex items-center justify-center gap-2">
-              {copied === 'contributor' ? '✅ הועתק!' : '✍️ העתק לינק כותבי שאלות'}
-            </button>
+            <>
+              <button onClick={() => copyToClipboard(contributorLink, 'contributor')}
+                className="w-full mt-2 bg-cyan-500/15 hover:bg-cyan-500/25 text-cyan-300 text-sm font-medium py-2 rounded-xl border border-cyan-500/20 transition-all flex items-center justify-center gap-2">
+                {copied === 'contributor' ? '✅ הועתק!' : '✍️ העתק לינק כותבי שאלות'}
+              </button>
+              {isHost && (
+                <label className="mt-2 flex items-center justify-between gap-3 cursor-pointer bg-white/5 rounded-xl px-3 py-2 border border-white/10 hover:bg-white/8 transition-all">
+                  <span className="text-white/60 text-xs">כותבי שאלות יכולים להצטרף כשחקנים</span>
+                  <div
+                    onClick={() => toggleContributorJoin(!allowContributorJoin)}
+                    className={`relative w-10 h-5 rounded-full transition-colors shrink-0 ${allowContributorJoin ? 'bg-cyan-500' : 'bg-white/20'}`}
+                  >
+                    <div className={`absolute top-0.5 w-4 h-4 bg-white rounded-full shadow transition-all ${allowContributorJoin ? 'right-0.5' : 'left-0.5'}`} />
+                  </div>
+                </label>
+              )}
+            </>
           )}
         </div>
 

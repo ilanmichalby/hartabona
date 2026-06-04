@@ -5,7 +5,7 @@ import AnimatedBg from '../../components/AnimatedBg'
 import AvatarDisplay from '../../components/AvatarDisplay'
 
 export default function JoinForm({ game, sessionToken, onJoined }) {
-  const [name, setName] = useState('')
+  const [name, setName] = useState(localStorage.getItem('hartabona_contributor_name') || '')
   const [avatarSeed, setAvatarSeed] = useState(AVATAR_SEEDS[Math.floor(Math.random() * AVATAR_SEEDS.length)])
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')

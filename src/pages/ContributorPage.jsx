@@ -170,8 +170,16 @@ export default function ContributorPage() {
                 authorName={contributorName}
               />
 
-              <div className="pt-3 border-t border-white/10 text-center">
-                <p className="text-white/30 text-xs">
+              <div className="pt-3 border-t border-white/10 space-y-2">
+                {game.allow_contributor_join !== false && (
+                  <a
+                    href={`/game/${game.code}`}
+                    className="block w-full text-center bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-500 hover:to-pink-500 text-white font-bold py-3 rounded-2xl transition-all shadow-lg hover:-translate-y-0.5"
+                  >
+                    🎮 כניסה למשחק כשחקן
+                  </a>
+                )}
+                <p className="text-white/30 text-xs text-center">
                   מנהל המשחק יבחר אילו שאלות להכניס
                 </p>
               </div>
