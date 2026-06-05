@@ -126,3 +126,427 @@ input, textarea, select {
   background: rgba(139, 92, 246, 0.2) !important;
   box-shadow: 0 0 0 2px rgba(139, 92, 246, 0.5), 0 8px 30px rgba(139, 92, 246, 0.3);
 }
+
+/* ════════════════════════════════════════════════════════
+   🎪 CARNIVAL (שקרנבל) THEME
+   ════════════════════════════════════════════════════════ */
+
+/* ── Background elements ── */
+.carnival-stripes {
+  position: absolute;
+  inset: -50%;
+  background: repeating-conic-gradient(
+    from 0deg,
+    rgba(255, 61, 139, 0.055) 0deg 45deg,
+    rgba(45, 226, 230, 0.04) 45deg 90deg,
+    rgba(255, 211, 56, 0.045) 90deg 135deg,
+    rgba(100, 245, 141, 0.035) 135deg 180deg
+  );
+  animation: carnival-stripe-spin 40s linear infinite;
+  pointer-events: none;
+}
+
+@keyframes carnival-stripe-spin {
+  to { transform: rotate(360deg); }
+}
+
+.carnival-corner {
+  position: absolute;
+  border-radius: 50%;
+  pointer-events: none;
+}
+.carnival-corner-tr {
+  top: -90px; right: -90px;
+  width: 240px; height: 240px;
+  background: #ff3d8b;
+  animation: carnival-corner-pulse 4s ease-in-out infinite;
+}
+.carnival-corner-tl {
+  top: -60px; left: -60px;
+  width: 170px; height: 170px;
+  background: #2de2e6;
+  animation: carnival-corner-pulse 4s ease-in-out infinite 1.3s;
+}
+.carnival-corner-br {
+  bottom: -70px; left: -70px;
+  width: 200px; height: 200px;
+  background: #ffd338;
+  animation: carnival-corner-pulse 4s ease-in-out infinite 2.6s;
+}
+@keyframes carnival-corner-pulse {
+  0%, 100% { transform: scale(1); opacity: 1; }
+  50%       { transform: scale(1.07); opacity: 0.85; }
+}
+
+/* ── Confetti particles ── */
+.carnival-confetti-wrap {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+}
+.carnival-piece {
+  position: absolute;
+  bottom: -20px;
+  animation: carnival-rise linear infinite;
+  opacity: 0;
+}
+@keyframes carnival-rise {
+  0%   { transform: translateY(0)     rotate(0deg);   opacity: 0; }
+  8%   { opacity: 0.85; }
+  90%  { opacity: 0.7; }
+  100% { transform: translateY(-110vh) rotate(540deg); opacity: 0; }
+}
+
+/* ── Card / surface overrides ── */
+html[data-theme="carnival"] .bg-white\/10,
+html[data-theme="carnival"] .bg-white\/5,
+html[data-theme="carnival"] .bg-white\/8,
+html[data-theme="carnival"] .bg-white\/15 {
+  background-color: white !important;
+  border-color: #111 !important;
+  border-width: 2px !important;
+  box-shadow: 4px 4px 0 #111 !important;
+}
+
+html[data-theme="carnival"] .bg-white\/10.backdrop-blur-md,
+html[data-theme="carnival"] .backdrop-blur-md {
+  backdrop-filter: none !important;
+}
+
+/* Hover cards darken border */
+html[data-theme="carnival"] .bg-white\/10:hover,
+html[data-theme="carnival"] .bg-white\/5:hover {
+  background-color: #fffaed !important;
+}
+
+/* Inner lighter surfaces (score rows, etc.) */
+html[data-theme="carnival"] .bg-white\/7 {
+  background-color: #fafafa !important;
+}
+
+/* ── Border overrides ── */
+html[data-theme="carnival"] .border-white\/20,
+html[data-theme="carnival"] .border-white\/15,
+html[data-theme="carnival"] .border-white\/10,
+html[data-theme="carnival"] .border-white\/18 {
+  border-color: #111 !important;
+}
+
+/* ── Text overrides ── */
+html[data-theme="carnival"] .text-white {
+  color: #17151e !important;
+}
+html[data-theme="carnival"] .text-white\/90 { color: rgba(23,21,30,.92) !important; }
+html[data-theme="carnival"] .text-white\/80 { color: rgba(23,21,30,.82) !important; }
+html[data-theme="carnival"] .text-white\/70 { color: rgba(23,21,30,.72) !important; }
+html[data-theme="carnival"] .text-white\/60 { color: rgba(23,21,30,.62) !important; }
+html[data-theme="carnival"] .text-white\/50 { color: rgba(23,21,30,.52) !important; }
+html[data-theme="carnival"] .text-white\/40 { color: rgba(23,21,30,.42) !important; }
+html[data-theme="carnival"] .text-white\/30 { color: rgba(23,21,30,.32) !important; }
+html[data-theme="carnival"] .text-white\/20 { color: rgba(23,21,30,.22) !important; }
+html[data-theme="carnival"] .text-purple-300 { color: #7c1d48 !important; }
+html[data-theme="carnival"] .text-purple-200 { color: #9d174d !important; }
+html[data-theme="carnival"] .text-cyan-300   { color: #0e7490 !important; }
+html[data-theme="carnival"] .text-cyan-200   { color: #155e75 !important; }
+
+/* ── Placeholder text ── */
+html[data-theme="carnival"] ::placeholder {
+  color: rgba(23,21,30,.35) !important;
+}
+
+/* ── Input / Textarea ── */
+html[data-theme="carnival"] input,
+html[data-theme="carnival"] textarea {
+  background-color: white !important;
+  border: 3px solid #111 !important;
+  box-shadow: 3px 3px 0 #111 !important;
+  color: #17151e !important;
+}
+
+/* ── PRIMARY buttons (purple→pink gradient) ── */
+html[data-theme="carnival"] .from-purple-600 {
+  background-image: none !important;
+  background-color: #ff3d8b !important;
+  color: white !important;
+  border: 3px solid #111 !important;
+  box-shadow: 4px 4px 0 #111 !important;
+  transition: transform .12s ease, box-shadow .12s ease !important;
+}
+html[data-theme="carnival"] .from-purple-600:hover:not(:disabled) {
+  transform: translate(2px, 2px) !important;
+  box-shadow: 2px 2px 0 #111 !important;
+  background-color: #e0306f !important;
+}
+html[data-theme="carnival"] .from-purple-600:active:not(:disabled) {
+  transform: translate(4px, 4px) !important;
+  box-shadow: 0px 0px 0 #111 !important;
+}
+
+/* ── CYAN buttons (questions mode) ── */
+html[data-theme="carnival"] .from-cyan-700,
+html[data-theme="carnival"] .from-cyan-600 {
+  background-image: none !important;
+  background-color: #2de2e6 !important;
+  color: #111 !important;
+  border: 3px solid #111 !important;
+  box-shadow: 4px 4px 0 #111 !important;
+  transition: transform .12s ease, box-shadow .12s ease !important;
+}
+html[data-theme="carnival"] .from-cyan-700:hover:not(:disabled),
+html[data-theme="carnival"] .from-cyan-600:hover:not(:disabled) {
+  transform: translate(2px, 2px) !important;
+  box-shadow: 2px 2px 0 #111 !important;
+}
+
+/* ── GREEN start button ── */
+html[data-theme="carnival"] .from-green-600 {
+  background-image: none !important;
+  background-color: #64f58d !important;
+  color: #111 !important;
+  border: 3px solid #111 !important;
+  box-shadow: 4px 4px 0 #111 !important;
+  transition: transform .12s ease, box-shadow .12s ease !important;
+}
+html[data-theme="carnival"] .from-green-600:hover:not(:disabled) {
+  transform: translate(2px, 2px) !important;
+  box-shadow: 2px 2px 0 #111 !important;
+}
+
+/* ── Contributor "join as player" button ── */
+html[data-theme="carnival"] .bg-gradient-to-r.from-purple-600 {
+  background-image: none !important;
+  background-color: #ff3d8b !important;
+}
+
+/* ── Cyan contributor link button ── */
+html[data-theme="carnival"] .bg-cyan-500\/15 {
+  background-color: #b2f5ea !important;
+  border: 2px solid #111 !important;
+  box-shadow: 3px 3px 0 #111 !important;
+}
+
+/* ── Toggle switch ── */
+html[data-theme="carnival"] .bg-cyan-500 {
+  background-color: #2de2e6 !important;
+  border: 2px solid #111 !important;
+}
+html[data-theme="carnival"] .bg-white\/20 {
+  background-color: rgba(0,0,0,.12) !important;
+}
+
+/* ── Active tab (purple) ── */
+html[data-theme="carnival"] .bg-purple-600 {
+  background-color: #ff3d8b !important;
+  color: white !important;
+}
+html[data-theme="carnival"] .bg-cyan-600 {
+  background-color: #2de2e6 !important;
+  color: #111 !important;
+}
+
+/* ── Voting options ── */
+html[data-theme="carnival"] .border-purple-500.bg-purple-500\/20,
+html[data-theme="carnival"] .selected-card {
+  background-color: #ff3d8b !important;
+  border-color: #111 !important;
+  border-width: 3px !important;
+  box-shadow: 3px 3px 0 #111 !important;
+  color: white !important;
+}
+
+html[data-theme="carnival"] .border-green-400 {
+  border-color: #111 !important;
+  background-color: #64f58d !important;
+  color: #111 !important;
+}
+html[data-theme="carnival"] .border-red-400 {
+  border-color: #111 !important;
+  background-color: #ff3d8b !important;
+  color: white !important;
+}
+
+/* ── Progress bars ── */
+html[data-theme="carnival"] .bg-purple-600.rounded-full,
+html[data-theme="carnival"] .bg-gradient-to-r.h-full {
+  background: repeating-linear-gradient(
+    90deg,
+    #ff3d8b 0 24px,
+    #ffd338 24px 48px,
+    #2de2e6 48px 72px
+  ) !important;
+  background-image: none;
+  animation: carnival-stripe-march 1.5s linear infinite !important;
+}
+@keyframes carnival-stripe-march {
+  from { background-position: 0 0; }
+  to   { background-position: 72px 0; }
+}
+
+/* ── Pill / badge overrides ── */
+html[data-theme="carnival"] .bg-purple-600\/50 {
+  background-color: #ff3d8b !important;
+  color: white !important;
+}
+html[data-theme="carnival"] .bg-yellow-400\/10 {
+  background-color: #ffd338 !important;
+  border-color: #111 !important;
+}
+
+/* ── Scrollbar ── */
+html[data-theme="carnival"] ::-webkit-scrollbar-thumb {
+  background: #ff3d8b !important;
+}
+
+/* ── Glow pulse → carnival stamp shadow ── */
+html[data-theme="carnival"] .glow-pulse {
+  animation: carnival-stamp 2s ease-in-out infinite !important;
+  box-shadow: 4px 4px 0 #111 !important;
+}
+@keyframes carnival-stamp {
+  0%, 100% { box-shadow: 4px 4px 0 #111; }
+  50%       { box-shadow: 6px 6px 0 #ff3d8b; }
+}
+
+/* ── Slide-up entrance: carnival card pop ── */
+html[data-theme="carnival"] .slide-up {
+  animation: carnival-card-pop 0.45s cubic-bezier(0.34, 1.56, 0.64, 1) forwards !important;
+}
+@keyframes carnival-card-pop {
+  from { transform: translateY(40px) rotate(-2deg) scale(0.92); opacity: 0; }
+  to   { transform: translateY(0)    rotate(0deg)  scale(1);    opacity: 1; }
+}
+
+/* ── Bounce-in → carnival explosion ── */
+html[data-theme="carnival"] .bounce-in {
+  animation: carnival-explode 0.55s cubic-bezier(0.34, 1.7, 0.64, 1) forwards !important;
+}
+@keyframes carnival-explode {
+  0%   { transform: scale(0) rotate(-8deg); opacity: 0; }
+  60%  { transform: scale(1.2) rotate(3deg); opacity: 1; }
+  100% { transform: scale(1) rotate(0deg); opacity: 1; }
+}
+
+/* ── Float animation → carnival wobble ── */
+html[data-theme="carnival"] .float-anim {
+  animation: carnival-wobble 3s ease-in-out infinite !important;
+}
+@keyframes carnival-wobble {
+  0%, 100% { transform: rotate(0deg) translateY(0); }
+  20%       { transform: rotate(4deg) translateY(-4px); }
+  40%       { transform: rotate(-3deg) translateY(-8px); }
+  60%       { transform: rotate(3deg) translateY(-4px); }
+  80%       { transform: rotate(-2deg) translateY(-2px); }
+}
+
+/* ── Score pop → carnival pop ── */
+html[data-theme="carnival"] .score-pop {
+  animation: carnival-score-pop 0.7s cubic-bezier(0.34, 1.56, 0.64, 1) !important;
+}
+@keyframes carnival-score-pop {
+  0%   { transform: scale(1); }
+  40%  { transform: scale(1.6) rotate(5deg); color: #ff3d8b; }
+  70%  { transform: scale(0.9) rotate(-2deg); }
+  100% { transform: scale(1) rotate(0deg); }
+}
+
+/* ── Shimmer text → carnival stripes ── */
+html[data-theme="carnival"] .shimmer-text {
+  background: repeating-linear-gradient(
+    90deg, #ff3d8b, #ffd338, #2de2e6, #64f58d, #ff3d8b
+  ) !important;
+  background-size: 300% auto !important;
+  -webkit-background-clip: text !important;
+  -webkit-text-fill-color: transparent !important;
+  background-clip: text !important;
+  animation: carnival-text-march 2s linear infinite !important;
+}
+@keyframes carnival-text-march {
+  from { background-position: 0% center; }
+  to   { background-position: 300% center; }
+}
+
+/* ── Card-hover → carnival press ── */
+html[data-theme="carnival"] .card-hover:hover {
+  transform: translate(2px, 2px) !important;
+  box-shadow: 2px 2px 0 #111 !important;
+}
+html[data-theme="carnival"] .card-hover:active {
+  transform: translate(4px, 4px) !important;
+  box-shadow: 0px 0px 0 #111 !important;
+}
+
+/* ── Body background ── */
+html[data-theme="carnival"] body {
+  background: #f0e8c0 !important;
+}
+
+/* ── Error messages ── */
+html[data-theme="carnival"] .bg-red-500\/10 {
+  background-color: #fff0f3 !important;
+  border-color: #ff3d8b !important;
+}
+html[data-theme="carnival"] .text-red-400 {
+  color: #c80050 !important;
+}
+
+/* ── Info box (cyan/questions) ── */
+html[data-theme="carnival"] .bg-cyan-500\/10 {
+  background-color: #e0fafa !important;
+  border-color: #0e7490 !important;
+}
+
+/* ── Yellow host badge ── */
+html[data-theme="carnival"] .text-yellow-400 {
+  color: #92400e !important;
+}
+html[data-theme="carnival"] .bg-yellow-400\/10 {
+  background-color: #fef3c7 !important;
+  border-color: #d97706 !important;
+}
+html[data-theme="carnival"] .border-yellow-400\/20 {
+  border-color: #d97706 !important;
+}
+
+/* ── Disabled buttons ── */
+html[data-theme="carnival"] button:disabled {
+  opacity: 0.45 !important;
+  box-shadow: 2px 2px 0 rgba(0,0,0,.25) !important;
+  transform: none !important;
+}
+
+/* ── Avatar rings ── */
+html[data-theme="carnival"] .border-purple-400\/50 {
+  border-color: #111 !important;
+}
+
+/* ── Theme picker chip (self-exempt from overrides) ── */
+.theme-picker-chip {
+  background: white;
+  border: 3px solid #111;
+  box-shadow: 3px 3px 0 #111;
+  border-radius: 12px;
+  padding: 6px 14px;
+  font-weight: 900;
+  font-size: 13px;
+  color: #111;
+  cursor: pointer;
+  transition: transform .12s, box-shadow .12s;
+  font-family: inherit;
+}
+.theme-picker-chip:hover {
+  transform: translate(1px, 1px);
+  box-shadow: 2px 2px 0 #111;
+}
+.theme-picker-chip.active-current {
+  background: #1a0533;
+  color: white;
+  border-color: #7c3aed;
+  box-shadow: 3px 3px 0 #7c3aed;
+}
+.theme-picker-chip.active-carnival {
+  background: #ff3d8b;
+  color: white;
+  border-color: #111;
+  box-shadow: 3px 3px 0 #111;
+}

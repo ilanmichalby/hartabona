@@ -1,12 +1,14 @@
 import { useState, useEffect } from 'react'
 import { useParams } from 'react-router-dom'
 import { supabase } from '../lib/supabase'
+import { useTheme } from '../context/ThemeContext'
 import AnimatedBg from '../components/AnimatedBg'
 import LoadingSpinner from '../components/LoadingSpinner'
 import QuestionSetupPanel from '../components/QuestionSetupPanel'
 
 export default function ContributorPage() {
   const { contributorCode } = useParams()
+  const { setTheme } = useTheme()
   const [game, setGame] = useState(null)
   const [questions, setQuestions] = useState([])
   const [loading, setLoading] = useState(true)
@@ -29,6 +31,7 @@ export default function ContributorPage() {
       if (err || !data) { setError('קוד תרומה לא נמצא'); setLoading(false); return }
       if (data.status !== 'lobby') { setError('המשחק כבר התחיל, לא ניתן להוסיף שאלות'); setLoading(false); return }
       setGame(data)
+      setTheme(data.theme || 'current')
 
       // טוען רק את השאלות של התורם הנוכחי — כך שלא יראה שאלות של אחרים
       const storedName = localStorage.getItem('hartabona_contributor_name')

@@ -2,6 +2,7 @@ import { BrowserRouter, Routes, Route } from 'react-router-dom'
 import HomePage from './pages/HomePage'
 import GameRouter from './pages/game/GameRouter'
 import ContributorPage from './pages/ContributorPage'
+import { ThemeProvider } from './context/ThemeContext'
 
 function NotFound() {
   return (
@@ -20,13 +21,15 @@ function NotFound() {
 
 export default function App() {
   return (
-    <BrowserRouter>
-      <Routes>
-        <Route path="/" element={<HomePage />} />
-        <Route path="/game/:code" element={<GameRouter />} />
-        <Route path="/contribute/:contributorCode" element={<ContributorPage />} />
-        <Route path="*" element={<NotFound />} />
-      </Routes>
-    </BrowserRouter>
+    <ThemeProvider>
+      <BrowserRouter>
+        <Routes>
+          <Route path="/" element={<HomePage />} />
+          <Route path="/game/:code" element={<GameRouter />} />
+          <Route path="/contribute/:contributorCode" element={<ContributorPage />} />
+          <Route path="*" element={<NotFound />} />
+        </Routes>
+      </BrowserRouter>
+    </ThemeProvider>
   )
 }

@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from 'react'
 import { useParams, useSearchParams } from 'react-router-dom'
 import { supabase } from '../../lib/supabase'
 import { getSessionToken, getPlayerForGame, savePlayerForGame } from '../../lib/gameUtils'
+import { useTheme } from '../../context/ThemeContext'
 import AnimatedBg from '../../components/AnimatedBg'
 import LoadingSpinner from '../../components/LoadingSpinner'
 import JoinForm from './JoinForm'
@@ -18,6 +19,7 @@ export default function GameRouter() {
   const [searchParams] = useSearchParams()
   const isCreator = searchParams.get('host') === '1'
   const sessionToken = getSessionToken()
+  const { setTheme } = useTheme()
 
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
@@ -61,6 +63,7 @@ export default function GameRouter() {
         .from('games').select('*').eq('code', upperCode).single()
       if (gameErr || !gameData) { setError('משחק לא נמצא'); setLoading(false); return }
       setGame(gameData)
+      setTheme(gameData.theme || 'current')
 
       const { data: playersData } = await supabase
         .from('players').select('*').eq('game_id', gameData.id).order('created_at', { ascending: true })
@@ -121,6 +124,10 @@ export default function GameRouter() {
           const newGame = payload.new
           const prevGame = gameRef.current
           setGame(newGame)
+          // Sync theme change to all players in real-time
+          if (newGame.theme && newGame.theme !== prevGame?.theme) {
+            setTheme(newGame.theme)
+          }
           if (newGame.current_round !== prevGame?.current_round ||
             (newGame.status !== prevGame?.status && ['fabricating', 'voting', 'reveal'].includes(newGame.status))) {
             await loadRoundData(gameId, newGame.current_round)

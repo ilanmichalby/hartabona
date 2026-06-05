@@ -1,12 +1,19 @@
 import { useState } from 'react'
 import { supabase } from '../../lib/supabase'
+import { useTheme } from '../../context/ThemeContext'
 import AvatarDisplay from '../../components/AvatarDisplay'
 import QuestionSetupPanel from '../../components/QuestionSetupPanel'
+
+const THEMES = [
+  { id: 'current',  label: '🎨 רגיל',     desc: 'עיצוב כהה עם גרדיאנטים' },
+  { id: 'carnival', label: '🎪 שקרנבל', desc: 'קרקס, צבעים, בלאגן שמח' },
+]
 
 export default function LobbyPhase({ game, players, myPlayer, isHost, onStartGame, gameCode, allQuestions }) {
   const [copied, setCopied] = useState(null) // 'player' | 'contributor' | null
   const [starting, setStarting] = useState(false)
   const [tab, setTab] = useState('players') // 'players' | 'questions'
+  const { theme, setTheme } = useTheme()
   const [allowContributorJoin, setAllowContributorJoin] = useState(
     game.allow_contributor_join !== false // ברירת מחדל: true
   )
@@ -14,6 +21,11 @@ export default function LobbyPhase({ game, players, myPlayer, isHost, onStartGam
   async function toggleContributorJoin(val) {
     setAllowContributorJoin(val)
     await supabase.from('games').update({ allow_contributor_join: val }).eq('id', game.id)
+  }
+
+  async function changeTheme(newTheme) {
+    setTheme(newTheme)
+    await supabase.from('games').update({ theme: newTheme }).eq('id', game.id)
   }
 
   const isQuestionsMode = game.mode === 'questions'
@@ -80,6 +92,31 @@ export default function LobbyPhase({ game, players, myPlayer, isHost, onStartGam
             </>
           )}
         </div>
+
+        {/* Theme picker — host only */}
+        {isHost && (
+          <div className="bg-white/10 backdrop-blur-md rounded-2xl p-4 border border-white/20">
+            <p className="text-white/60 text-xs font-medium mb-3">🎨 עיצוב המשחק — כולם יראו אותו שינוי</p>
+            <div className="flex gap-2">
+              {THEMES.map(t => (
+                <button
+                  key={t.id}
+                  onClick={() => changeTheme(t.id)}
+                  className="theme-picker-chip flex-1"
+                  style={theme === t.id
+                    ? t.id === 'carnival'
+                      ? { background: '#ff3d8b', color: 'white', borderColor: '#111', boxShadow: '3px 3px 0 #111' }
+                      : { background: '#1a0533', color: 'white', borderColor: '#7c3aed', boxShadow: '3px 3px 0 #7c3aed' }
+                    : {}}
+                  title={t.desc}
+                >
+                  {t.label}
+                  {theme === t.id && ' ✓'}
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
 
         {/* Tabs (questions mode) */}
         {isQuestionsMode && isHost && (
