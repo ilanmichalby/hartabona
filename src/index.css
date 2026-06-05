@@ -508,6 +508,98 @@ html[data-theme="carnival"] .border-yellow-400\/20 {
   border-color: #d97706 !important;
 }
 
+/* ── Colored status cards (green/red/orange/cyan) — high contrast ── */
+
+/* Green = correct */
+html[data-theme="carnival"] .bg-green-500\/20 {
+  background-color: #64f58d !important;
+  border-color: #111 !important;
+  border-width: 2px !important;
+  box-shadow: 3px 3px 0 #111 !important;
+}
+html[data-theme="carnival"] .shadow-green-500\/20 { box-shadow: none !important; }
+html[data-theme="carnival"] .border-green-500\/40,
+html[data-theme="carnival"] .border-green-400\/60,
+html[data-theme="carnival"] .border-green-400\/30 {
+  border-color: #111 !important;
+}
+html[data-theme="carnival"] .text-green-300,
+html[data-theme="carnival"] .text-green-400 {
+  color: #065f46 !important;
+}
+
+/* Red = wrong */
+html[data-theme="carnival"] .bg-red-500\/20 {
+  background-color: #ff3d8b !important;
+  border-color: #111 !important;
+  border-width: 2px !important;
+  box-shadow: 3px 3px 0 #111 !important;
+}
+html[data-theme="carnival"] .border-red-500\/40,
+html[data-theme="carnival"] .border-red-400\/30 {
+  border-color: #111 !important;
+}
+html[data-theme="carnival"] .text-red-300 { color: white !important; }
+html[data-theme="carnival"] .text-red-400 { color: #be123c !important; }
+
+/* Orange = neutral/points */
+html[data-theme="carnival"] .bg-orange-500\/20 {
+  background-color: #ffd338 !important;
+  border-color: #111 !important;
+  border-width: 2px !important;
+  box-shadow: 3px 3px 0 #111 !important;
+}
+html[data-theme="carnival"] .border-orange-500\/30,
+html[data-theme="carnival"] .border-orange-500\/40 {
+  border-color: #111 !important;
+}
+html[data-theme="carnival"] .text-orange-300,
+html[data-theme="carnival"] .text-orange-400 { color: #92400e !important; }
+
+/* Cyan = questions mode */
+html[data-theme="carnival"] .bg-cyan-500\/20,
+html[data-theme="carnival"] .from-cyan-500\/20 {
+  background-color: #a5f3fc !important;
+  background-image: none !important;
+  border-color: #111 !important;
+  border-width: 2px !important;
+  box-shadow: 3px 3px 0 #111 !important;
+}
+html[data-theme="carnival"] .to-blue-600\/20 {
+  background-image: none !important;
+}
+html[data-theme="carnival"] .bg-gradient-to-br.from-cyan-500\/20 {
+  background: #a5f3fc !important;
+  background-image: none !important;
+}
+html[data-theme="carnival"] .border-cyan-400\/30,
+html[data-theme="carnival"] .border-cyan-500\/30 {
+  border-color: #111 !important;
+}
+html[data-theme="carnival"] .text-cyan-400 { color: #0e7490 !important; }
+html[data-theme="carnival"] .text-cyan-300  { color: #0e7490 !important; }
+
+/* Very-low-opacity surfaces (bg-white/7, bg-white/8) */
+html[data-theme="carnival"] .bg-white\/8,
+html[data-theme="carnival"] .bg-white\/7 {
+  background-color: white !important;
+  border-color: #111 !important;
+  border-width: 2px !important;
+  box-shadow: 3px 3px 0 #111 !important;
+}
+
+/* Voter chips — lightweight pill, no heavy shadow */
+html[data-theme="carnival"] .rounded-full.bg-white\/10 {
+  background-color: #f3f3f3 !important;
+  border: 1.5px solid #111 !important;
+  box-shadow: 1px 1px 0 #111 !important;
+}
+
+/* Divider lines inside cards */
+html[data-theme="carnival"] .border-t.border-white\/10 {
+  border-color: rgba(0,0,0,.15) !important;
+}
+
 /* ── Disabled buttons ── */
 html[data-theme="carnival"] button:disabled {
   opacity: 0.45 !important;
