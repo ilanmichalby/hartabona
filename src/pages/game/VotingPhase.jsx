@@ -3,7 +3,7 @@ import { supabase } from '../../lib/supabase'
 import { shuffleArray } from '../../lib/gameUtils'
 import AvatarDisplay from '../../components/AvatarDisplay'
 
-export default function VotingPhase({ game, players, myPlayer, roundStatements, votes, currentQuestion }) {
+export default function VotingPhase({ game, players, myPlayer, isHost, onForceAdvance, roundStatements, votes, currentQuestion }) {
   const [selectedId, setSelectedId] = useState(null)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
@@ -125,6 +125,14 @@ export default function VotingPhase({ game, players, myPlayer, roundStatements, 
                 style={{ width: `${expectedVotes > 0 ? (votedCount / expectedVotes) * 100 : 0}%` }}
               />
             </div>
+            {isHost && votedCount < expectedVotes && (
+              <button
+                onClick={onForceAdvance}
+                className="w-full mt-3 border border-white/20 bg-white/5 hover:bg-white/12 text-white/50 hover:text-white/80 text-xs py-2 rounded-xl transition-all"
+              >
+                ⚡ עבור לחשיפה עכשיו · {expectedVotes - votedCount} לא הצביעו
+              </button>
+            )}
           </div>
         </div>
       </div>
@@ -216,6 +224,14 @@ export default function VotingPhase({ game, players, myPlayer, roundStatements, 
               style={{ width: `${expectedVotes > 0 ? (votedCount / expectedVotes) * 100 : 0}%` }}
             />
           </div>
+          {isHost && votedCount < expectedVotes && (
+            <button
+              onClick={onForceAdvance}
+              className="w-full mt-3 border border-white/20 bg-white/5 hover:bg-white/12 text-white/50 hover:text-white/80 text-xs py-2 rounded-xl transition-all"
+            >
+              ⚡ עבור לחשיפה עכשיו · {expectedVotes - votedCount} לא הצביעו
+            </button>
+          )}
         </div>
       </div>
     </div>

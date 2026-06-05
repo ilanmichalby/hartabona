@@ -6,7 +6,7 @@ function normalizeAnswer(str) {
   return str.trim().toLowerCase().replace(/\s+/g, ' ').replace(/[.,!?;:'"()\-]/g, '')
 }
 
-export default function FabricatingPhase({ game, players, myPlayer, roundStatements, currentQuestion }) {
+export default function FabricatingPhase({ game, players, myPlayer, isHost, onForceAdvance, roundStatements, currentQuestion }) {
   const [statement, setStatement] = useState('')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
@@ -120,6 +120,14 @@ export default function FabricatingPhase({ game, players, myPlayer, roundStateme
               <div className="bg-gradient-to-r from-cyan-500 to-blue-500 h-2 rounded-full transition-all duration-500"
                 style={{ width: `${expectedFakes > 0 ? (fakesCount / expectedFakes) * 100 : 0}%` }} />
             </div>
+            {isHost && fakesCount < expectedFakes && (
+              <button
+                onClick={onForceAdvance}
+                className="w-full mt-3 border border-white/20 bg-white/5 hover:bg-white/12 text-white/50 hover:text-white/80 text-xs py-2 rounded-xl transition-all"
+              >
+                ⚡ עבור להצבעה עכשיו · {expectedFakes - fakesCount} לא הגישו
+              </button>
+            )}
           </div>
         </div>
       </div>
@@ -192,6 +200,14 @@ export default function FabricatingPhase({ game, players, myPlayer, roundStateme
             <div className="bg-gradient-to-r from-yellow-500 to-orange-500 h-2 rounded-full transition-all duration-500"
               style={{ width: `${expectedFakes > 0 ? (fakesCount / expectedFakes) * 100 : 0}%` }} />
           </div>
+          {isHost && fakesCount < expectedFakes && (
+            <button
+              onClick={onForceAdvance}
+              className="w-full mt-3 border border-white/20 bg-white/5 hover:bg-white/12 text-white/50 hover:text-white/80 text-xs py-2 rounded-xl transition-all"
+            >
+              ⚡ עבור להצבעה עכשיו · {expectedFakes - fakesCount} לא הגישו
+            </button>
+          )}
         </div>
       </div>
     </div>

@@ -371,8 +371,8 @@ export default function GameRouter() {
         <LobbyPhase {...sharedProps} onStartGame={startGame} gameCode={code.toUpperCase()} allQuestions={questions} />
       )}
       {game.status === 'writing' && <WritingPhase {...sharedProps} />}
-      {game.status === 'fabricating' && <FabricatingPhase {...sharedProps} />}
-      {game.status === 'voting' && <VotingPhase {...sharedProps} />}
+      {game.status === 'fabricating' && <FabricatingPhase {...sharedProps} onForceAdvance={advanceFabricatingToVoting} />}
+      {game.status === 'voting' && <VotingPhase {...sharedProps} onForceAdvance={calculateScoresAndReveal} />}
       {game.status === 'reveal' && <RevealPhase {...sharedProps} onContinue={advanceRevealToLeaderboard} />}
       {game.status === 'leaderboard' && <LeaderboardPhase {...sharedProps} onNextRound={advanceToNextRound} />}
       {game.status === 'finished' && <FinalPhase {...sharedProps} />}
