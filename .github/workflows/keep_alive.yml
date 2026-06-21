@@ -15,3 +15,10 @@ jobs:
           curl -X GET "${{ secrets.SUPABASE_URL }}/rest/v1/games?select=id&limit=1" \
           -H "apikey: ${{ secrets.SUPABASE_KEY }}" \
           -H "Authorization: Bearer ${{ secrets.SUPABASE_KEY }}"
+
+
+- name: Check Supabase URL exists
+  run: |
+    echo "SUPABASE_URL length: ${#SUPABASE_URL}"
+  env:
+    SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
