@@ -37,7 +37,8 @@ jobs:
             echo "::error::On the free tier this almost always means the project is PAUSED --"
             echo "::error::Supabase tears down DNS for paused projects. Less commonly it was deleted."
             echo "::error::Go to https://supabase.com/dashboard and click 'Resume project'."
-            echo "::error::Resuming keeps the same project ref, URL and keys, so no secrets need updating."
+            echo "::error::Then confirm the Project ID under Settings > General still matches the"
+            echo "::error::SUPABASE_URL secret, and update the secret if it does not."
             echo "::error::Note: this workflow cannot wake a paused project, only keep a live one awake."
             exit 1
           fi
