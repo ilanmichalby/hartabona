@@ -52,7 +52,10 @@ jobs:
           # Several queries per run, not one. The threshold is described as
           # "a few requests each day", so volume is the point.
           failed=0
-          for table in games players rounds; do
+          # Verified present in the live project. Note that rounds, answers and
+          # trivia_questions exist in the local .sql files but NOT in the project,
+          # so do not add them here without checking first.
+          for table in games players votes; do
             code=$(curl -sS -o /tmp/body.txt -w '%{http_code}' \
               -X GET "${SUPABASE_URL}/rest/v1/${table}?select=id&limit=1" \
               -H "apikey: ${SUPABASE_KEY}" \
