@@ -2,8 +2,9 @@ name: Keep Supabase Alive
 
 on:
   schedule:
-    # Run at midnight UTC on Sunday and Friday
-    - cron: '0 0 * * 0,5'
+    # Daily at midnight UTC. The free tier pauses after 7 days of inactivity;
+    # daily runs leave margin for individual runs being delayed or dropped.
+    - cron: '0 0 * * *'
   workflow_dispatch:
 
 jobs:
@@ -33,9 +34,11 @@ jobs:
           host=$(printf '%s' "$SUPABASE_URL" | sed -E 's#^https?://##; s#/.*$##')
           if ! getent hosts "$host" > /dev/null; then
             echo "::error::DNS lookup failed for the Supabase project host."
-            echo "::error::A paused project still resolves, so this usually means the project"
-            echo "::error::was deleted or restored under a different project ref."
-            echo "::error::Check https://supabase.com/dashboard and update the SUPABASE_URL secret."
+            echo "::error::On the free tier this almost always means the project is PAUSED --"
+            echo "::error::Supabase tears down DNS for paused projects. Less commonly it was deleted."
+            echo "::error::Go to https://supabase.com/dashboard and click 'Resume project'."
+            echo "::error::Resuming keeps the same project ref, URL and keys, so no secrets need updating."
+            echo "::error::Note: this workflow cannot wake a paused project, only keep a live one awake."
             exit 1
           fi
           echo "Host resolved."
