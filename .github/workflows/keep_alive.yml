@@ -10,15 +10,60 @@ jobs:
   ping:
     runs-on: ubuntu-latest
 
+    env:
+      SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+      SUPABASE_KEY: ${{ secrets.SUPABASE_KEY }}
+
     steps:
-      - name: Check Supabase URL exists
+      - name: Validate secrets
         run: |
-          echo "SUPABASE_URL length: ${#SUPABASE_URL}"
-        env:
-          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          fail=0
+          if [ -z "$SUPABASE_URL" ]; then
+            echo "::error::secret SUPABASE_URL is empty or not set"
+            fail=1
+          fi
+          if [ -z "$SUPABASE_KEY" ]; then
+            echo "::error::secret SUPABASE_KEY is empty or not set"
+            fail=1
+          fi
+          exit $fail
+
+      - name: Check project host resolves
+        run: |
+          host=$(printf '%s' "$SUPABASE_URL" | sed -E 's#^https?://##; s#/.*$##')
+          if ! getent hosts "$host" > /dev/null; then
+            echo "::error::DNS lookup failed for the Supabase project host."
+            echo "::error::A paused project still resolves, so this usually means the project"
+            echo "::error::was deleted or restored under a different project ref."
+            echo "::error::Check https://supabase.com/dashboard and update the SUPABASE_URL secret."
+            exit 1
+          fi
+          echo "Host resolved."
 
       - name: Ping Supabase Database
         run: |
-          curl -fS -X GET "${{ secrets.SUPABASE_URL }}/rest/v1/games?select=id&limit=1" \
-            -H "apikey: ${{ secrets.SUPABASE_KEY }}" \
-            -H "Authorization: Bearer ${{ secrets.SUPABASE_KEY }}"
+          code=$(curl -sS -o /tmp/body.txt -w '%{http_code}' \
+            -X GET "${SUPABASE_URL}/rest/v1/games?select=id&limit=1" \
+            -H "apikey: ${SUPABASE_KEY}" \
+            -H "Authorization: Bearer ${SUPABASE_KEY}") || {
+              echo "::error::curl failed to complete the request (exit $?)"
+              exit 1
+            }
+
+          echo "HTTP status: $code"
+
+          if [ "$code" -ge 200 ] && [ "$code" -lt 300 ]; then
+            echo "Ping succeeded."
+            exit 0
+          fi
+
+          case "$code" in
+            401|403) echo "::error::Auth rejected ($code). The SUPABASE_KEY secret is wrong, expired, or lacks access to public.games." ;;
+            404)     echo "::error::404 — the games table or the /rest/v1 endpoint was not found at this project." ;;
+            5*)      echo "::error::Supabase returned $code. The project may be paused or having an outage." ;;
+            *)       echo "::error::Unexpected HTTP status $code." ;;
+          esac
+
+          echo "Response body:"
+          cat /tmp/body.txt
+          exit 1
