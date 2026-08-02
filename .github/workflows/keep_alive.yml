@@ -2,9 +2,12 @@ name: Keep Supabase Alive
 
 on:
   schedule:
-    # Daily at midnight UTC. The free tier pauses after 7 days of inactivity;
-    # daily runs leave margin for individual runs being delayed or dropped.
-    - cron: '0 0 * * *'
+    # Every 6 hours. Supabase docs say "a few user requests to the database each
+    # day over the previous week" is what keeps a Free plan project awake, so one
+    # request a day sits right on the threshold rather than above it.
+    # Minute 17 on purpose: GitHub drops queued scheduled jobs under load, and
+    # load peaks at the top of the hour.
+    - cron: '17 */6 * * *'
   workflow_dispatch:
 
 jobs:
@@ -46,28 +49,39 @@ jobs:
 
       - name: Ping Supabase Database
         run: |
-          code=$(curl -sS -o /tmp/body.txt -w '%{http_code}' \
-            -X GET "${SUPABASE_URL}/rest/v1/games?select=id&limit=1" \
-            -H "apikey: ${SUPABASE_KEY}" \
-            -H "Authorization: Bearer ${SUPABASE_KEY}") || {
-              echo "::error::curl failed to complete the request (exit $?)"
-              exit 1
-            }
+          # Several queries per run, not one. The threshold is described as
+          # "a few requests each day", so volume is the point.
+          failed=0
+          for table in games players rounds; do
+            code=$(curl -sS -o /tmp/body.txt -w '%{http_code}' \
+              -X GET "${SUPABASE_URL}/rest/v1/${table}?select=id&limit=1" \
+              -H "apikey: ${SUPABASE_KEY}" \
+              -H "Authorization: Bearer ${SUPABASE_KEY}") || {
+                echo "::error::curl failed to complete the request for ${table} (exit $?)"
+                failed=1
+                continue
+              }
 
-          echo "HTTP status: $code"
+            echo "${table}: HTTP ${code}"
 
-          if [ "$code" -ge 200 ] && [ "$code" -lt 300 ]; then
-            echo "Ping succeeded."
+            if [ "$code" -ge 200 ] && [ "$code" -lt 300 ]; then
+              continue
+            fi
+
+            failed=1
+            case "$code" in
+              401|403) echo "::error::Auth rejected ($code) on ${table}. The SUPABASE_KEY secret is wrong, expired, or lacks access." ;;
+              404)     echo "::error::404 — table ${table} or the /rest/v1 endpoint was not found at this project." ;;
+              5*)      echo "::error::Supabase returned $code on ${table}. The project may be paused or having an outage." ;;
+              *)       echo "::error::Unexpected HTTP status $code on ${table}." ;;
+            esac
+            echo "Response body:"
+            cat /tmp/body.txt
+          done
+
+          if [ "$failed" -eq 0 ]; then
+            echo "All pings succeeded."
             exit 0
           fi
 
-          case "$code" in
-            401|403) echo "::error::Auth rejected ($code). The SUPABASE_KEY secret is wrong, expired, or lacks access to public.games." ;;
-            404)     echo "::error::404 — the games table or the /rest/v1 endpoint was not found at this project." ;;
-            5*)      echo "::error::Supabase returned $code. The project may be paused or having an outage." ;;
-            *)       echo "::error::Unexpected HTTP status $code." ;;
-          esac
-
-          echo "Response body:"
-          cat /tmp/body.txt
           exit 1
